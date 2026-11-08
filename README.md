@@ -9,7 +9,8 @@ cron-scripts/
 ├── lib/            # 公共方法，订阅时作为依赖文件拉取，不建任务
 │   └── daidai.py   # 发通知、读写面板环境变量
 └── tasks/          # 定时任务脚本，每个文件对应面板里的一个任务
-    └── jpy_rate.py # 日元汇率推送
+    ├── jpy_rate.py      # 日元汇率推送
+    └── hdwing_signin.py # HDWinG 每日签到
 ```
 
 ## 约定
@@ -48,6 +49,14 @@ cron-scripts/
 ```bash
 python3 tasks/jpy_rate.py
 RATE_ALERT=0.045 python3 tasks/jpy_rate.py
+HDWING_COOKIE="hdchina=xxx" python3 tasks/hdwing_signin.py
 ```
+
+## 任务所需环境变量
+
+| 任务 | 变量 | 说明 |
+| --- | --- | --- |
+| `jpy_rate.py` | `RATE_ALERT` | 可选，汇率提醒阈值 |
+| `hdwing_signin.py` | `HDWING_COOKIE` | 必填，hdwing.org 的 Cookie，只需 `hdchina=xxx`；多账号换行或 `&` 分隔 |
 
 不在面板中运行时没有 `DAIDAI_API_BASE` / `DAIDAI_TOKEN`，`notify` 只打印到终端。
