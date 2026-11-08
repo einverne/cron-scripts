@@ -9,8 +9,9 @@ cron-scripts/
 ├── lib/            # 公共方法，订阅时作为依赖文件拉取，不建任务
 │   └── daidai.py   # 发通知、读写面板环境变量
 └── tasks/          # 定时任务脚本，每个文件对应面板里的一个任务
-    ├── jpy_rate.py      # 日元汇率推送
-    └── hdwing_signin.py # HDWinG 每日签到
+    ├── jpy_rate.py         # 日元汇率推送
+    ├── hdwing_signin.py    # HDWinG 每日签到
+    └── cookiecloud_sync.py # 从 CookieCloud 同步 Cookie 到面板环境变量
 ```
 
 ## 约定
@@ -57,6 +58,14 @@ HDWING_COOKIE="hdchina=xxx" python3 tasks/hdwing_signin.py
 | 任务 | 变量 | 说明 |
 | --- | --- | --- |
 | `jpy_rate.py` | `RATE_ALERT` | 可选，汇率提醒阈值 |
-| `hdwing_signin.py` | `HDWING_COOKIE` | 必填，hdwing.org 的 Cookie，只需 `hdchina=xxx`；多账号换行或 `&` 分隔 |
+| `hdwing_signin.py` | `HDWING_COOKIE` | 必填，hdwing.org 的 Cookie，只需 `hdchina=xxx`；多账号换行或 `&` 分隔。可由 `cookiecloud_sync.py` 自动写入 |
+| `cookiecloud_sync.py` | `COOKIECLOUD_URL` / `COOKIECLOUD_UUID` / `COOKIECLOUD_PASSWORD` | 必填，CookieCloud 服务地址和插件里的 UUID、加密密码 |
+| `cookiecloud_sync.py` | `COOKIECLOUD_MAP` | 必填，每行一条 `环境变量名=域名`，如 `HDWING_COOKIE=hdwing.org` |
+
+## Cookie 自动同步
+
+浏览器装 CookieCloud 插件，把要同步的域名加进插件的同步列表，Cookie 会定时上传到自建服务。`cookiecloud_sync.py` 每天在各签到任务之前运行，把 `COOKIECLOUD_MAP` 里列出的域名的 Cookie 写回对应的环境变量。以后新增签到脚本，只要在 `COOKIECLOUD_MAP` 里加一行，浏览器保持登录，就不用再手动更新 Cookie。
+
+同步任务按名字 upsert，所以映射到的变量只能有一条记录，多账号变量（同名多条）不要放进 `COOKIECLOUD_MAP`。
 
 不在面板中运行时没有 `DAIDAI_API_BASE` / `DAIDAI_TOKEN`，`notify` 只打印到终端。
