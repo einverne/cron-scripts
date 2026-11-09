@@ -11,6 +11,7 @@ cron-scripts/
 └── tasks/          # 定时任务脚本，每个文件对应面板里的一个任务
     ├── jpy_rate.py         # 日元汇率推送
     ├── hdwing_signin.py    # HDWinG 每日签到
+    ├── rousi_signin.py     # RousiPro 每日签到
     └── cookiecloud_sync.py # 从 CookieCloud 同步 Cookie 到面板环境变量
 ```
 
@@ -59,6 +60,8 @@ HDWING_COOKIE="hdchina=xxx" python3 tasks/hdwing_signin.py
 | --- | --- | --- |
 | `jpy_rate.py` | `RATE_ALERT` | 可选，汇率提醒阈值 |
 | `hdwing_signin.py` | `HDWING_COOKIE` | 必填，hdwing.org 的 Cookie，只需 `hdchina=xxx`；多账号换行或 `&` 分隔。可由 `cookiecloud_sync.py` 自动写入 |
+| `rousi_signin.py` | `ROUSI_COOKIE` | 必填，rousi.pro 的 Cookie，即 `__Host-peergo_session=xxx`；多账号换行或 `&` 分隔。可由 `cookiecloud_sync.py` 自动写入 |
+| `rousi_signin.py` | `ROUSI_MODE` | 可选，`fixed`（默认，固定 100 魔力）或 `random`（随机 1~300） |
 | `cookiecloud_sync.py` | `COOKIECLOUD_URL` / `COOKIECLOUD_UUID` / `COOKIECLOUD_PASSWORD` | 必填，CookieCloud 服务地址和插件里的 UUID、加密密码 |
 | `cookiecloud_sync.py` | `COOKIECLOUD_MAP` | 必填，每行一条 `环境变量名=域名`，如 `HDWING_COOKIE=hdwing.org` |
 
