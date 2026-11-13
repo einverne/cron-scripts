@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # name: 阿里云盘签到
 # cron: 35 9 * * *
-"""阿里云盘每日签到并领取当天奖励，结果通过面板通知推送。
+"""阿里云盘每日签到，结果和当天奖励状态通过面板通知推送。
 
 阿里云盘的登录态不在 Cookie 里，而是网页版 localStorage 的 `token` 项（JSON，含
 refresh_token）。refresh_token 每次换 access_token 都会轮换，旧值随之作废，所以本脚本
@@ -125,22 +125,17 @@ def signin(access_token):
     if status != 200 or not data.get("success", True) or "result" not in data:
         raise RuntimeError(f"签到失败：{status} {data.get('code', '')} {data.get('message', '')}".strip())
 
-    result = data["result"]
-    days = result.get("signInCount", 0)
-    lines = [f"本月已签到 {days} 天"]
+    lines = [f"本月已签到 {data['result'].get('signInCount', 0)} 天"]
 
-    today = next((log for log in result.get("signInLogs") or [] if log.get("day") == days), None)
-    if today and not today.get("isReward"):
-        status, reward = post(
-            "https://member.alipan.com/v1/activity/sign_in_reward?_rx-s=mobile", {"signInDay": days}, access_token
-        )
-        if status == 200 and reward.get("success", True):
-            info = reward.get("result") or {}
-            lines.append(f"领取奖励：{info.get('name') or ''}{info.get('description') or info.get('notice') or ''}".rstrip("："))
-        else:
-            lines.append(f"奖励领取失败：{reward.get('message') or status}")
-    elif today:
-        lines.append("今日奖励已领取")
+    # 签到奖励现在随签到自动发放，旧的 v1/activity/sign_in_reward 只认官方客户端（403「请升级最新客户端访问」），
+    # 这里只查询并展示奖励状态；查询失败不影响签到结果
+    status, info = post("https://member.alipan.com/v2/activity/sign_in_info?_rx-s=mobile", {}, access_token)
+    if status == 200 and isinstance(info.get("result"), dict):
+        for reward in info["result"].get("rewards") or []:
+            state = "已获得" if reward.get("status") == "finished" else "未完成"
+            lines.append(f"{reward.get('name')}：{state}（{reward.get('remind')}）")
+    else:
+        lines.append(f"奖励状态查询失败：{status}")
     return lines
 
 
