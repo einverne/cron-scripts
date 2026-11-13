@@ -116,7 +116,7 @@ def save_token(new_token):
     if not in_panel():
         print(f"本地运行，不写回面板，新 token 末四位：{new_token[-4:]}")
         return
-    upsert_env(ENV_NAME, new_token, "阿里云盘 refresh_token，由「阿里云盘签到」任务自动轮换，勿手改")
+    upsert_env(ENV_NAME, new_token)
     print("新 refresh_token 已写回面板")
 
 

@@ -53,7 +53,11 @@ def notify(title, content):
     payload = {"title": title, "content": content}
     if CHANNEL_ID:
         payload["channel_id"] = int(CHANNEL_ID)
-    api("POST", "/notifications/send", payload)
+    try:
+        api("POST", "/notifications/send", payload)
+    except RuntimeError as err:
+        # 推送渠道偶发失败（比如 Telegram 连接被重置）不该影响任务本身的结果
+        print(f"[notify] 推送失败：{err}")
 
 
 def list_env(name):
@@ -65,7 +69,11 @@ def list_env(name):
 
 
 def upsert_env(name, value, remarks=None):
-    """按名字写回环境变量；同名存在多条时接口会直接报错，不会静默改错一条。"""
+    """按名字写回环境变量；同名存在多条时接口会直接报错，不会静默改错一条。
+
+    注意 remarks 同时是匹配条件：传了 remarks 时面板按「名字 + 备注」找记录，
+    已有记录备注不同就会新建一条同名记录，变成多账号变量。写回已有变量时不要传 remarks。
+    """
     payload = {"name": name, "value": value}
     if remarks is not None:
         payload["remarks"] = remarks
