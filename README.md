@@ -13,6 +13,7 @@ cron-scripts/
     ├── hdwing_signin.py    # HDWinG 每日签到
     ├── rousi_signin.py     # RousiPro 每日签到
     ├── ttg_signin.py       # TTG 每日签到
+    ├── aliyunpan_signin.py # 阿里云盘每日签到
     └── cookiecloud_sync.py # 从 CookieCloud 同步 Cookie 到面板环境变量
 ```
 
@@ -64,12 +65,16 @@ HDWING_COOKIE="hdchina=xxx" python3 tasks/hdwing_signin.py
 | `rousi_signin.py` | `ROUSI_COOKIE` | 必填，rousi.pro 的 Cookie，即 `__Host-peergo_session=xxx`；多账号换行或 `&` 分隔。可由 `cookiecloud_sync.py` 自动写入 |
 | `rousi_signin.py` | `ROUSI_MODE` | 可选，`fixed`（默认，固定 100 魔力）或 `random`（随机 1~300） |
 | `ttg_signin.py` | `TTG_COOKIE` | 必填，totheglory.im 的 Cookie，至少 `uid=xxx; pass=xxx`；多账号换行或 `&` 分隔。可由 `cookiecloud_sync.py` 自动写入 |
+| `aliyunpan_signin.py` | `ALIYUN_REFRESH_TOKEN` | 可选，阿里云盘 refresh_token，脚本每次运行后自动写回轮换后的新值，不要手改 |
+| `aliyunpan_signin.py` | `ALIYUN_BROWSER_TOKEN` | 可选，浏览器网页版 localStorage 的 `token`，`ALIYUN_REFRESH_TOKEN` 失效时兜底；由 `cookiecloud_sync.py` 自动写入 |
 | `cookiecloud_sync.py` | `COOKIECLOUD_URL` / `COOKIECLOUD_UUID` / `COOKIECLOUD_PASSWORD` | 必填，CookieCloud 服务地址和插件里的 UUID、加密密码 |
-| `cookiecloud_sync.py` | `COOKIECLOUD_MAP` | 必填，每行一条 `环境变量名=域名`，如 `HDWING_COOKIE=hdwing.org` |
+| `cookiecloud_sync.py` | `COOKIECLOUD_MAP` | 必填，每行一条 `环境变量名=域名`，如 `HDWING_COOKIE=hdwing.org`；写成 `环境变量名=域名@键` 时取 localStorage，如 `ALIYUN_BROWSER_TOKEN=alipan.com@token` |
 
 ## Cookie 自动同步
 
 浏览器装 CookieCloud 插件，把要同步的域名加进插件的同步列表，Cookie 会定时上传到自建服务。`cookiecloud_sync.py` 每天在各签到任务之前运行，把 `COOKIECLOUD_MAP` 里列出的域名的 Cookie 写回对应的环境变量。以后新增签到脚本，只要在 `COOKIECLOUD_MAP` 里加一行，浏览器保持登录，就不用再手动更新 Cookie。
+
+有些站点的登录态在 localStorage 而不是 Cookie（比如阿里云盘），插件需开启 Local Storage 同步，映射写成 `变量名=域名@键`，取出的是该键的原始值。
 
 同步任务按名字 upsert，所以映射到的变量只能有一条记录，多账号变量（同名多条）不要放进 `COOKIECLOUD_MAP`。
 
